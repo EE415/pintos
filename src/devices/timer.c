@@ -106,9 +106,21 @@ timer_sleep (int64_t ticks)
   if (curr != idle_thread)
     list_push_back (&sleep_list, &curr->elem);
 
-  thread_block(); 
+  thread_block (); 
   intr_set_level (old_level);
     //thread_yield ();
+}
+
+/* Wakes up blocked thread when timer interrupt occurs. */
+void
+timer_wakeup ()
+{
+  //remove thread from sleep_list
+  //make thread which should be woken up be unblocked
+  //thread_unblock() will add thread to ready_list
+  //called by timer_interrupt()
+  struct thread *wake = list_pop_front (&sleep_list);
+  thread_unblock (wake);
 }
 
 /* Suspends execution for approximately MS milliseconds. */
@@ -144,6 +156,7 @@ static void
 timer_interrupt (struct intr_frame *args UNUSED)
 {
   ticks++;
+  timer_wakeup();
   thread_tick ();
 }
 
